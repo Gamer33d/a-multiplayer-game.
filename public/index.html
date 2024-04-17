@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>A multiplayer game!</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..800&display=swap" rel="stylesheet">
+    <script src="/socket.io/socket.io.js"></script>
+  </head>
+  <body>
+    <div class="center">
+      <canvas id="screen" width="10px" height="10px"></canvas>
+      <div>
+        <table id="scoreTable"></table>
+      </div>
+    </div>
+
+    <script type="module">
+        import { createKeyboardListener } from './keyboard-listener.js'
+        import { createGame } from './game.js'
+        import { renderScreen, setupScreen } from './render-screen.js'
+        const screen = document.getElementById("screen")
+        const scoreTable = document.getElementById('scoreTable')
+        const collectFruitSong = new Audio('assets/colectfruitsong.mp3')
+        const collect100FruitSong = new Audio('assets/100pointssong.mp3')
+
+        const game = createGame(screen)
+        const keyboardListener = createKeyboardListener(document)
+        
+        
+        const socket = io()
+        socket.on('connect', () => {
+          const playerId = socket.id
+          console.info("> Player connected on Client with id: " + playerId)
+          renderScreen(screen, game, requestAnimationFrame, playerId, scoreTable)
+        })
+
+        socket.on("disconnect", () => {
+          keyboardListener.unsubscribeAllObservers()
+        })
+
+        socket.on("setup", (state) => {
+          console.info("> Receiving 'setup' event from server")
+
+          const playerId = socket.id
+          game.setState(state)
+          setupScreen(state, screen)
+
+          keyboardListener.subscribeObserver(game.movePlayer)
+          keyboardListener.registerPlayerId(playerId)
+          keyboardListener.subscribeObserver((command) => {
+            socket.emit(command.type, command)
+          })
+        })
+
+        socket.on("add-player", (command) => {
+          const { playerId, playerX, playerY } = command
+          game.addPlayer({ playerId, playerX, playerY })
+        })
+
+        socket.on("remove-player", (command) => {
+          const { playerId } = command
+          game.removePlayer({ playerId })
+        })
+        
+        socket.on("move-player", (command) => {
+            const playerId = socket.id
+
+            if(playerId != command.playerId){
+              game.movePlayer(command)
+            }
+        })
+
+        socket.on("add-fruit", command => {
+          const { fruitId, fruitX, fruitY } = command
+          game.addFruit({ fruitId, fruitX, fruitY })
+        })
+
+        socket.on("remove-fruit", command => {
+          const { fruitId, fruitX, fruitY } = command
+          game.removeFruit({ fruitId })
+        })
+        
+        socket.on("add-point-to-a-player", command => {
+          const playerId = socket.id
+          const { currentPoints } = command
+          const multipleOf100Reminder = currentPoints % 100
+
+          if(multipleOf100Reminder == 0){
+            collectFruitSong.pause()
+            collect100FruitSong.pause()
+            collect100FruitSong.currentTime = 0
+            collect100FruitSong.play()
+          }
+
+          if(playerId != command.playerId){
+            game.setPoints(command.playerId, currentPoints)
+          }else{
+            if(multipleOf100Reminder != 0){
+              collectFruitSong.pause()
+              collect100FruitSong.pause()
+              collectFruitSong.currentTime = 0
+              collectFruitSong.play()   
+            }
+          }
+        })
+        
+    </script>
+  </body>
+</html>
