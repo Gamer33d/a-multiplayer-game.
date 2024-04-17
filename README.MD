@@ -4,9 +4,6 @@ Filipe Deschamps, onde, em seu canal, foi postado 12 videos explicando
 os principais conceitos e toda a aplicação em si. Eu apenas implementei algumas
 ideias que ele propos, refatorei algumas linhas e deixei o codigo a minha "cara".
 
-## Referencias
-[Repositório principal](https://github.com/filipedeschamps/meu-primeiro-jogo-multiplayer)\
-[Canal do Filipe Deschamps](https://www.youtube.com/@FilipeDeschamps)
 
 ## Conceitos.
 
@@ -41,3 +38,7 @@ com o server, e transitar todos os dados necessarios entre **server -> client** 
 - [x] Fazer o jogador dar a volta no canvas, invez de proibir a passagem atraves da parede
 - [x] Sistema de pontuação
 - [x] Emitir sons (a cada ponto e ao chegar em 100 pontos)
+
+## Referencias
+[Repositório principal](https://github.com/filipedeschamps/meu-primeiro-jogo-multiplayer)\
+[Canal do Filipe Deschamps](https://www.youtube.com/@FilipeDeschamps)
